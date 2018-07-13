@@ -1,7 +1,3 @@
-.App {
-  text-align: center;
-}
-
 .App-logo {
   animation: App-logo-spin infinite 20s linear;
   height: 80px;
@@ -18,10 +14,34 @@
 }
 
 .App-intro {
-  font-size: large;
+  font-size: 16px;
 }
 
 @keyframes App-logo-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+.article-image {
+  width: 150px;
+}
+
+.media__thumb {
+  position: relative;
+}
+.media__checkbox {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+}
+
+.media__title {
+  font-weight: bold;
+}
+
+.media__footer {
+  font-size: 12px;
+}
+
+.media__author {
+  font-weight: bold;
 }
