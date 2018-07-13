@@ -1,7 +1,9 @@
 import React, { Component } from 'react'
 import './App.css'
 import axios from 'axios'
-import {Container, Row, Col, Button} from 'reactstrap'
+import {Container, Row, Col} from 'reactstrap'
+import md5 from 'md5'
+import ReadMoreButton from './components/ReadMoreButton'
 
 class App extends Component {
   
@@ -14,12 +16,18 @@ class App extends Component {
       searchLanguage:'',
       searchSources: '',
       searchCategories:'',
-      searchResult:[]
+      searchResult:[],
+      searchPage:1,
+      searchPageSize: 100,
+      searchTotalResult:null
     }
     
     this.handleSubmit = this.handleSubmit.bind(this)
     this.handleInputChange = this.handleInputChange.bind(this)
-    this.search = this.search.bind(this)
+    this.generateUIDfromJSON = this.generateUIDfromJSON.bind(this)
+    this.searchResponseCallback = this.searchResponseCallback.bind(this)
+    this.saveArticleInLocalstorage = this.saveArticleInLocalstorage.bind(this)
+    this.loadMoreHeandler = this.loadMoreHeandler.bind(this)
   }
 
   handleInputChange (event) {
@@ -27,38 +35,108 @@ class App extends Component {
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
 
+    console.log(target.type)
+
     this.setState({
       [name]: value
-    });
+    })
   }
   
   handleSubmit (event) {
-    this.search(this.state.searchPhrase)
+    this.getSearchResults(this.state.searchPhrase, this.state.searchPage, this.searchResponseCallback)
     event.preventDefault();
   }
 
 
-  search (searchKey) {
+  getSearchResults (searchKey, page, callback) {
+
+    var that = this;
+
+    var searchBy
+    if (that.searchPage === 1) {
+      searchBy = searchKey
+      that.setState({
+        searchPhrase: searchBy
+      })
+    }
+    else {
+      searchBy = that.state.searchPhrase
+    }
+
     var url = 'https://newsapi.org/v2/everything?' +
-              'q='+ searchKey +'&' +
+              'q='+ searchBy +'&' +
+              'page='+ page +'&' +
               'from=2018-07-12&' +
               'sortBy=popularity&' +
+              'pageSize='+ this.state.searchPageSize +'&' +
               'apiKey=7ef307c1f48e47b1bd67089de81e2b63'
 
 
     axios.get(url)
-      .then( response => {
-        var json = response.data.articles
-        var arr = []
-        Object.keys(json).forEach(function(key) {
-          arr.push(json[key])
-        })
-        this.setState({ searchResult: arr})
+      .then( function (response) {
+        callback.call(that,response.data)
       })
       .catch(function (error) {
         console.log(error);
       });
   }
+
+  generateUIDfromJSON (json) {
+     return md5(JSON.stringify(json))
+  }
+
+  searchResponseCallback (searchResult) {
+
+    var that = this
+    var json = searchResult.articles
+
+    if (that.state.searchTotalResult === null) {
+        that.state.searchTotalResult = searchResult.totalResults
+        console.log(searchResult.totalResults)
+    }
+
+    var arr = that.state.searchResult;
+    Object.keys(json).forEach(function(key) {
+
+      const currentItem = json[key]
+      currentItem["isSaved"] = false;
+
+      //save in to array
+      arr.push(currentItem)
+    })
+
+    var currentPage = this.state.searchPage+1
+    this.setState({ 
+      searchResult: arr,
+      searchPage: currentPage
+    })
+  }
+
+  loadMoreHeandler () {
+    var nextPage = this.state.searchPage + 1
+    this.getSearchResults(this.state.searchPhrase, nextPage, this.searchResponseCallback)
+  }
+
+  saveArticleInLocalstorage (articleJsonObj) {
+
+    //generate UID
+    const UID = this.generateUIDfromJSON(articleJsonObj);
+
+    if (window.localStorage.getItem(UID) === null) {
+      //We need to save item
+
+      window.localStorage.setItem(UID, JSON.stringify(articleJsonObj))
+    }
+    else {
+      //Check item as selected
+    }
+
+  }
+
+  componentWillUpdate = (nextProps, nextState) => {
+    this.currentPage = nextState.searchPage
+  }
+  
 
 
   render() {
@@ -117,9 +195,7 @@ class App extends Component {
                   </div>
               )}
 
-              <div className="more text-center my-5">
-                <Button color="primary" className="">Load more...</Button>
-              </div>
+              <ReadMoreButton clickHandler={this.loadMoreHeandler} currentPage={this.currentPage} totalResults={this.state.searchTotalResult} pageSize={this.state.searchPageSize} />
               
             </div>
 
