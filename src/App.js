@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import './App.css'
 import axios from 'axios'
-import {Container, Row, Col} from 'reactstrap'
+import {Container, Row, Col, Button} from 'reactstrap'
 import md5 from 'md5'
 import ReadMoreButton from './components/ReadMoreButton'
 
@@ -9,6 +9,8 @@ class App extends Component {
   
   constructor(props) {
     super(props)
+
+    this.language = ["ar", "de", "en", "es", "fr", "he", "it", "nl", "no", "pt", "ru", "se", "ud", "zh"]
 
     this.state = {
       searchPhrase: 'trump',
@@ -28,12 +30,27 @@ class App extends Component {
     this.searchResponseCallback = this.searchResponseCallback.bind(this)
     this.saveArticleInLocalstorage = this.saveArticleInLocalstorage.bind(this)
     this.loadMoreHeandler = this.loadMoreHeandler.bind(this)
+    this.checkArticleInLocalstorage = this.checkArticleInLocalstorage.bind(this)
+    this.exportData = this.exportData.bind(this)
   }
 
   handleInputChange (event) {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
+
+    if (target.type ==='checkbox') {
+      var arrayIndex = parseInt(name, 10)
+      var searchResult = this.state.searchResult[arrayIndex]
+      delete searchResult.isSaved
+
+      if (value) {
+        this.saveArticleInLocalstorage (searchResult)
+      }
+      else {
+        this.removeArticleFromLocalstorage(searchResult)
+      }
+    }
 
     console.log(target.type)
 
@@ -99,9 +116,13 @@ class App extends Component {
     Object.keys(json).forEach(function(key) {
 
       const currentItem = json[key]
-      currentItem["isSaved"] = false;
 
-      //save in to array
+
+      if (that.checkArticleInLocalstorage(currentItem)) {
+        currentItem["isSaved"] = true
+      }
+
+      //save in to array to save later in the state
       arr.push(currentItem)
     })
 
@@ -117,50 +138,95 @@ class App extends Component {
     this.getSearchResults(this.state.searchPhrase, nextPage, this.searchResponseCallback)
   }
 
-  saveArticleInLocalstorage (articleJsonObj) {
-
-    //generate UID
-    const UID = this.generateUIDfromJSON(articleJsonObj);
+  checkArticleInLocalstorage (articleJsonObj) {
+    const UID = this.generateUIDfromJSON(articleJsonObj)
 
     if (window.localStorage.getItem(UID) === null) {
-      //We need to save item
-
-      window.localStorage.setItem(UID, JSON.stringify(articleJsonObj))
+      return false
     }
     else {
-      //Check item as selected
+      return UID
     }
+  }
 
+  saveArticleInLocalstorage (articleJsonObj) {
+    if (!this.checkArticleInLocalstorage(articleJsonObj)) {
+      var UID = this.generateUIDfromJSON(articleJsonObj)
+      window.localStorage.setItem(UID, JSON.stringify(articleJsonObj))
+    }
+  }
+
+  removeArticleFromLocalstorage (articleJsonObj) {
+    var UID = this.checkArticleInLocalstorage(articleJsonObj)
+    if (UID) {
+      window.localStorage.removeItem (UID)
+    }
   }
 
   componentWillUpdate = (nextProps, nextState) => {
     this.currentPage = nextState.searchPage
   }
   
+  exportData () {
+
+    var csv = 'Author, Title, URL \n'
+
+    for ( var i = 0, len = localStorage.length; i < len; ++i ) {
+      var item  = JSON.parse(localStorage.getItem(localStorage.key(i))) 
+        csv += item.author + ", "
+        csv += item.title + ", "
+        csv += item.url + " \n"
+    }
+
+    var hiddenElement = document.createElement('a')
+    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv)
+    hiddenElement.target = '_blank'
+    hiddenElement.download = 'searchResult.csv'
+    hiddenElement.click();
+
+    localStorage.clear()
+
+  }
 
 
   render() {
     return (
       <div className="App">
         <header className="App-header">
-          <h1 className="App-title">Searchnews</h1>
+          <Container>
+            <Row>
+              <Col xs="12" md="6">
+                <h1 className="App-title">Searchnews</h1>
+              </Col>
+              <Col xs="12" md="6">
+                <form className="form-inline justify-content-end" onSubmit={this.handleSubmit}>
+              
+                <div className="form-group">
+                  <label className="sr-only" htmlFor="search-term">Search</label>
+                  <input 
+                    type="text" 
+                    className="form-control  mr-sm-2" 
+                    id="search-term" 
+                    placeholder="Search" 
+                    name="searchPhrase" 
+                    value={this.state.searchPhrase}
+                    onChange={this.handleInputChange} />
+                </div>
+                <div className="form-group">
+                  <button type="submit" className="btn btn-primary" >Search</button>
+                </div>
+                <div className="form-group ml-5">
+                  <Button color="primary" outline onClick={this.exportData}>Export</Button>
+                </div>
+
+                </form>
+              </Col>
+            </Row>
+          </Container>
+          
         </header>
         <Container className="App-intro py-5">
 
-            <form className="form-inline" onSubmit={this.handleSubmit}>
-            
-              <label className="sr-only" htmlFor="search-term">Search</label>
-              <input 
-                type="text" 
-                className="form-control mb-2 mr-sm-2" 
-                id="search-term" 
-                placeholder="Search" 
-                name="searchPhrase" 
-                value={this.state.searchPhrase}
-                onChange={this.handleInputChange} />
-              <button type="submit" className="btn btn-primary mb-2" >Search</button>
-
-            </form>
 
             <div className="search-result">
 
@@ -169,7 +235,7 @@ class App extends Component {
                     <Row>
                       <Col xs="12" md="3">
                         <div className="media__thumb">
-                          <input type="checkbox" className="media__checkbox" />
+                          <input type="checkbox" className="media__checkbox" name={index} defaultChecked={item.isSaved} onChange={this.handleInputChange} />
                           <img src={item.urlToImage} alt={item.author} className="img-fluid"  />
                         </div>
                       </Col>

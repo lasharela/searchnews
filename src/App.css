@@ -7,6 +7,10 @@
   background-color: #222;
   padding: 20px;
   color: white;
+  position: sticky;
+  top: 0;
+  width: 100%;
+  z-index: 9999;
 }
 
 .App-title {
@@ -15,6 +19,7 @@
 
 .App-intro {
   font-size: 16px;
+  padding-top: 100px;
 }
 
 @keyframes App-logo-spin {
