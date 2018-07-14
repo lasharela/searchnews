@@ -13,7 +13,7 @@ class App extends Component {
     this.language = ["ar", "de", "en", "es", "fr", "he", "it", "nl", "no", "pt", "ru", "se", "ud", "zh"]
 
     this.state = {
-      searchPhrase: 'trump',
+      searchPhrase: '',
       searchCountry: '',
       searchLanguage:'',
       searchSources: '',
@@ -192,6 +192,7 @@ class App extends Component {
   render() {
     return (
       <div className="App">
+
         <header className="App-header">
           <Container>
             <Row>
@@ -266,6 +267,11 @@ class App extends Component {
             </div>
 
         </Container>
+        <footer className="footer text-muted">
+          <Container>
+            <div>Developed by <a href="https://oxyn.io">Ox-Foundation</a> based on  <a href="https://newsapi.org/">https://newsapi.org</a></div>
+          </Container>
+        </footer>
       </div>
     );
   }
