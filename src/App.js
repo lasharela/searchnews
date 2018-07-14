@@ -22,7 +22,7 @@ class App extends Component {
       searchPage:1,
       searchPageSize: 100,
       searchTotalResult:null,
-      searchSavedResults: localStorage.length
+      savedItems: localStorage.length
     }
     
     this.handleSubmit = this.handleSubmit.bind(this)
@@ -53,7 +53,7 @@ class App extends Component {
       }
 
       //show how meny ietms are saved
-      this.state.searchSavedResults = localStorage.length
+      this.state.savedItems = localStorage.length
     }
 
     console.log(target.type)
@@ -182,7 +182,8 @@ class App extends Component {
         csv += item.url + " \n"
     }
 
-    var hiddenElement = document.createElement('a')
+    // var hiddenElement = document.createElement('a')
+    var hiddenElement = document.getElementById("download")
     hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv)
     hiddenElement.target = '_blank'
     hiddenElement.download = 'searchResult.csv'
@@ -221,7 +222,8 @@ class App extends Component {
                   <button type="submit" className="btn btn-primary" >Search</button>
                 </div>
                 <div className="form-group ml-5">
-                  <Button color="primary" outline onClick={this.exportData}>Export ({this.state.searchSavedResults})</Button>
+                  <Button color="primary" outline onClick={this.exportData}>Export ({this.state.savedItems})</Button>
+                  <a href="" id="download"></a>
                 </div>
 
                 </form>
