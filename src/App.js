@@ -21,7 +21,8 @@ class App extends Component {
       searchResult:[],
       searchPage:1,
       searchPageSize: 100,
-      searchTotalResult:null
+      searchTotalResult:null,
+      searchSavedResults: localStorage.length
     }
     
     this.handleSubmit = this.handleSubmit.bind(this)
@@ -50,6 +51,9 @@ class App extends Component {
       else {
         this.removeArticleFromLocalstorage(searchResult)
       }
+
+      //show how meny ietms are saved
+      this.state.searchSavedResults = localStorage.length
     }
 
     console.log(target.type)
@@ -217,7 +221,7 @@ class App extends Component {
                   <button type="submit" className="btn btn-primary" >Search</button>
                 </div>
                 <div className="form-group ml-5">
-                  <Button color="primary" outline onClick={this.exportData}>Export</Button>
+                  <Button color="primary" outline onClick={this.exportData}>Export ({this.state.searchSavedResults})</Button>
                 </div>
 
                 </form>
