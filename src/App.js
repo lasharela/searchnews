@@ -12,6 +12,11 @@ class App extends Component {
 
     this.language = ["ar", "de", "en", "es", "fr", "he", "it", "nl", "no", "pt", "ru", "se", "ud", "zh"]
 
+    var d = new Date();
+    // console.log(d.toLocaleDateString());
+    d.setMonth(d.getMonth() - 1);
+    this.dateFrom = d.toLocaleDateString('en-US');
+
     this.state = {
       searchPhrase: '',
       searchCountry: '',
@@ -84,13 +89,14 @@ class App extends Component {
       searchBy = that.state.searchPhrase
     }
 
+
     var url = 'https://newsapi.org/v2/everything?' +
               'q='+ searchBy +'&' +
               'page='+ page +'&' +
-              'from=2018-07-12&' +
+              'from='+ this.dateFrom +'&' +
               'sortBy=popularity&' +
               'pageSize='+ this.state.searchPageSize +'&' +
-              'apiKey=7ef307c1f48e47b1bd67089de81e2b63'
+              'apiKey=65bf03a117c541bdbffdbd0aa225470b'
 
 
     axios.get(url)
